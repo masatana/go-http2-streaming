@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	"golang.org/x/net/http2"
 )
@@ -23,13 +24,20 @@ func (c *Client) Dial() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	f, err := os.OpenFile("/tmp/keys", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	//defer f.Close()
 
 	t := &http2.Transport{
 		TLSClientConfig: &tls.Config{
 			Certificates:       []tls.Certificate{certs},
 			InsecureSkipVerify: true,
+			KeyLogWriter: f,
 		},
 	}
+
 	c.client = &http.Client{Transport: t}
 }
 
